@@ -1,10 +1,17 @@
 package testutil
 
 import (
+	"os"
+
 	prommodel "github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/expfmt"
 )
 
+var newEncoder = expfmt.NewEncoder
+
 var printMetrics = func(metrics []*prommodel.MetricFamily) error {
+	encoder := newEncoder(os.Stdout, expfmt.FmtText)
+	encoder.Encode(metrics[0])
 	return nil
 }
 

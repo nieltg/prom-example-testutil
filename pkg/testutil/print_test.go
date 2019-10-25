@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/prometheus/client_golang/prometheus"
 	prommodel "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,4 +59,22 @@ func TestPrintMetrics(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		assert.Equal(t, expectedErr, err)
 	})
+}
+
+func Example_printMetrics() {
+	counter := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "metric1",
+		Help: "metric1 help.",
+	})
+	counter.Inc()
+
+	registry := prometheus.NewPedanticRegistry()
+	registry.MustRegister(counter)
+
+	metrics, _ := registry.Gather()
+	_ = printMetrics(metrics)
+	// Output:
+	// # HELP metric1 metric1 help.
+	// # TYPE metric1 counter
+	// metric1 1
 }
