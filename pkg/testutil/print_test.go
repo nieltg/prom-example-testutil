@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"fmt"
 	"testing"
 
 	prommodel "github.com/prometheus/client_model/go"
@@ -17,4 +18,15 @@ func TestMustPrintMetrics(t *testing.T) {
 	metrics := []*prommodel.MetricFamily{}
 	MustPrintMetrics(metrics)
 	assert.Equal(t, metrics, inParam)
+}
+
+func TestMustPrintMetrics_panic(t *testing.T) {
+	expectedPanicValue := fmt.Errorf("sample error")
+	printMetrics = func(metrics []*prommodel.MetricFamily) error {
+		return expectedPanicValue
+	}
+
+	assert.PanicsWithValue(t, expectedPanicValue, func() {
+		MustPrintMetrics(nil)
+	})
 }

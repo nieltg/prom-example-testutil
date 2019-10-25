@@ -10,5 +10,7 @@ var printMetrics = func(metrics []*prommodel.MetricFamily) error {
 
 // MustPrintMetrics prints metrics or panic if error has occured.
 func MustPrintMetrics(metrics []*prommodel.MetricFamily) {
-	printMetrics(metrics)
+	if err := printMetrics(metrics); err != nil {
+		panic(err)
+	}
 }
