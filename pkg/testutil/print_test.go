@@ -2,10 +2,14 @@ package testutil
 
 import (
 	"fmt"
+	"io"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+	mockexpfmt "github.com/nieltg/prom-example-testutil/test/mock_expfmt"
 	"github.com/prometheus/client_golang/prometheus"
 	prommodel "github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/expfmt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -109,4 +113,35 @@ func Example_printMetrics_multiple() {
 	// # HELP metric2 metric2 help.
 	// # TYPE metric2 counter
 	// metric2 1
+}
+
+func mockNewEncoder(f func(w io.Writer, format expfmt.Format) expfmt.Encoder) func() {
+	originalNewEncoder := newEncoder
+	newEncoder = f
+
+	return func() {
+		newEncoder = originalNewEncoder
+	}
+}
+
+func Test_printMetrics_error(t *testing.T) {
+	expecterErr := fmt.Errorf("sample error")
+
+	mockEncoder := mockexpfmt.NewMockEncoder(gomock.NewController(t))
+	mockEncoder.EXPECT().Encode(gomock.Any()).Return(expecterErr)
+	mockNewEncoder(func(w io.Writer, format expfmt.Format) expfmt.Encoder {
+		return mockEncoder
+	})
+
+	counter := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "metric1",
+		Help: "metric1 help.",
+	})
+	counter.Inc()
+
+	registry := prometheus.NewPedanticRegistry()
+	registry.MustRegister(counter)
+
+	metrics, _ := registry.Gather()
+	assert.EqualError(t, printMetrics(metrics), expecterErr.Error())
 }
