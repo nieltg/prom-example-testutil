@@ -14,3 +14,8 @@ func MustPrintMetrics(metrics []*prommodel.MetricFamily) {
 		panic(err)
 	}
 }
+
+// PrintMetrics prints metrics, otherwise return error.
+func PrintMetrics(metrics []*prommodel.MetricFamily) error {
+	return printMetrics(metrics)
+}
