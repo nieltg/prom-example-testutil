@@ -83,3 +83,30 @@ func Example_printMetrics_nil() {
 	_ = printMetrics(nil)
 	// Output:
 }
+
+func Example_printMetrics_multiple() {
+	counter1 := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "metric1",
+		Help: "metric1 help.",
+	})
+	counter1.Inc()
+	counter2 := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "metric2",
+		Help: "metric2 help.",
+	})
+	counter2.Inc()
+
+	registry := prometheus.NewPedanticRegistry()
+	registry.MustRegister(counter1)
+	registry.MustRegister(counter2)
+
+	metrics, _ := registry.Gather()
+	_ = printMetrics(metrics)
+	// Output:
+	// # HELP metric1 metric1 help.
+	// # TYPE metric1 counter
+	// metric1 1
+	// # HELP metric2 metric2 help.
+	// # TYPE metric2 counter
+	// metric2 1
+}

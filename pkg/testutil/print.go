@@ -11,8 +11,8 @@ var newEncoder = expfmt.NewEncoder
 
 var printMetrics = func(metrics []*prommodel.MetricFamily) error {
 	encoder := newEncoder(os.Stdout, expfmt.FmtText)
-	if len(metrics) > 0 {
-		encoder.Encode(metrics[0])
+	for _, metric := range metrics {
+		encoder.Encode(metric)
 	}
 	return nil
 }
