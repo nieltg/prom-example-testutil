@@ -78,3 +78,8 @@ func Example_printMetrics() {
 	// # TYPE metric1 counter
 	// metric1 1
 }
+
+func Example_printMetrics_nil() {
+	_ = printMetrics(nil)
+	// Output:
+}
