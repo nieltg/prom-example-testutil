@@ -129,15 +129,6 @@ func Test_printMetrics_error(t *testing.T) {
 		return mockEncoder
 	})
 
-	counter := prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "metric1",
-		Help: "metric1 help.",
-	})
-	counter.Inc()
-
-	registry := prometheus.NewPedanticRegistry()
-	registry.MustRegister(counter)
-
-	metrics, _ := registry.Gather()
+	metrics := []*prommodel.MetricFamily{&prommodel.MetricFamily{}}
 	assert.EqualError(t, printMetrics(metrics), expecterErr.Error())
 }
