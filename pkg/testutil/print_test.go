@@ -7,7 +7,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	mockexpfmt "github.com/nieltg/prom-example-testutil/test/mock_expfmt"
-	"github.com/prometheus/client_golang/prometheus"
 	prommodel "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"github.com/stretchr/testify/assert"
@@ -65,33 +64,6 @@ func TestPrintMetrics(t *testing.T) {
 	})
 }
 
-func Example_printMetrics_multiple() {
-	counter1 := prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "metric1",
-		Help: "metric1 help.",
-	})
-	counter1.Inc()
-	counter2 := prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "metric2",
-		Help: "metric2 help.",
-	})
-	counter2.Inc()
-
-	registry := prometheus.NewPedanticRegistry()
-	registry.MustRegister(counter1)
-	registry.MustRegister(counter2)
-
-	metrics, _ := registry.Gather()
-	_ = printMetrics(metrics)
-	// Output:
-	// # HELP metric1 metric1 help.
-	// # TYPE metric1 counter
-	// metric1 1
-	// # HELP metric2 metric2 help.
-	// # TYPE metric2 counter
-	// metric2 1
-}
-
 func mockNewEncoderWithEncoder(encoder expfmt.Encoder) func() {
 	originalNewEncoder := newEncoder
 	newEncoder = func(w io.Writer, format expfmt.Format) expfmt.Encoder {
@@ -123,6 +95,24 @@ func Test_printMetrics_nil(t *testing.T) {
 	defer mockNewEncoderWithEncoder(mockEncoder)()
 
 	_ = printMetrics(nil)
+}
+
+func Test_printMetrics_multiple(t *testing.T) {
+	metrics := []*prommodel.MetricFamily{
+		&prommodel.MetricFamily{},
+		&prommodel.MetricFamily{},
+	}
+
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	mockEncoder := mockexpfmt.NewMockEncoder(controller)
+	gomock.InOrder(
+		mockEncoder.EXPECT().Encode(metrics[0]),
+		mockEncoder.EXPECT().Encode(metrics[1]),
+	)
+	defer mockNewEncoderWithEncoder(mockEncoder)()
+
+	_ = printMetrics(metrics)
 }
 
 func Test_printMetrics_error(t *testing.T) {
