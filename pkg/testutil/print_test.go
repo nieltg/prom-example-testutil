@@ -65,24 +65,6 @@ func TestPrintMetrics(t *testing.T) {
 	})
 }
 
-func Example_printMetrics() {
-	counter := prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "metric1",
-		Help: "metric1 help.",
-	})
-	counter.Inc()
-
-	registry := prometheus.NewPedanticRegistry()
-	registry.MustRegister(counter)
-
-	metrics, _ := registry.Gather()
-	_ = printMetrics(metrics)
-	// Output:
-	// # HELP metric1 metric1 help.
-	// # TYPE metric1 counter
-	// metric1 1
-}
-
 func Example_printMetrics_nil() {
 	_ = printMetrics(nil)
 	// Output:
@@ -122,6 +104,20 @@ func mockNewEncoder(f func(w io.Writer, format expfmt.Format) expfmt.Encoder) fu
 	return func() {
 		newEncoder = originalNewEncoder
 	}
+}
+
+func Test_printMetrics(t *testing.T) {
+	metrics := []*prommodel.MetricFamily{&prommodel.MetricFamily{}}
+
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	mockEncoder := mockexpfmt.NewMockEncoder(controller)
+	mockEncoder.EXPECT().Encode(metrics[0]).Return(nil).Times(1)
+	mockNewEncoder(func(w io.Writer, format expfmt.Format) expfmt.Encoder {
+		return mockEncoder
+	})
+
+	_ = printMetrics(metrics)
 }
 
 func Test_printMetrics_error(t *testing.T) {
