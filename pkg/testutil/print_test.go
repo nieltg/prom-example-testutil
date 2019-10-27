@@ -65,11 +65,6 @@ func TestPrintMetrics(t *testing.T) {
 	})
 }
 
-func Example_printMetrics_nil() {
-	_ = printMetrics(nil)
-	// Output:
-}
-
 func Example_printMetrics_multiple() {
 	counter1 := prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "metric1",
@@ -118,6 +113,16 @@ func Test_printMetrics(t *testing.T) {
 	defer mockNewEncoderWithEncoder(mockEncoder)()
 
 	_ = printMetrics(metrics)
+}
+
+func Test_printMetrics_nil(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	mockEncoder := mockexpfmt.NewMockEncoder(controller)
+	mockEncoder.EXPECT().Encode(gomock.Any()).Return(nil).Times(0)
+	defer mockNewEncoderWithEncoder(mockEncoder)()
+
+	_ = printMetrics(nil)
 }
 
 func Test_printMetrics_error(t *testing.T) {
