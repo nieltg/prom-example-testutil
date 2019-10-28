@@ -29,6 +29,8 @@ var globalFilterer filterer = &filtererImpl{}
 
 // FilterMetricsByName ...
 func FilterMetricsByName(
-	metrics []*prommodel.MetricFamily, name string) []*prommodel.MetricFamily {
-	return globalFilterer.FilterMetricsByName(metrics, name)
+	metrics []*prommodel.MetricFamily,
+	names ...string,
+) []*prommodel.MetricFamily {
+	return globalFilterer.FilterMetricsByName(metrics, names...)
 }

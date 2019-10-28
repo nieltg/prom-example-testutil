@@ -42,6 +42,20 @@ func TestFilterMetricsByName(t *testing.T) {
 	})
 }
 
+func TestFilterMetricsByName_multiple(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	filterer := mocktestutil.NewMockfilterer(controller)
+	filterer.EXPECT().FilterMetricsByName(filterMetricsA, "n0", "n1").Return(
+		filterMetricsB)
+
+	defer mockGlobalFilterer(filterer)()
+	out := FilterMetricsByName(filterMetricsA, "n0", "n1")
+	t.Run("return", func(t *testing.T) {
+		assert.Equal(t, filterMetricsB, out)
+	})
+}
+
 func Test_filtererImpl_FilterMetricsByName(t *testing.T) {
 	out := filtererImpl{}.FilterMetricsByName(filterMetricsA, filterMetricsNameA)
 	assert.Equal(t, filterMetricsA, out)
