@@ -40,3 +40,19 @@ func TestCollectAndPrint(t *testing.T) {
 	defer mockGlobalPrinter(printer)()
 	CollectAndPrint(utilCounterA, "n0")
 }
+
+func TestGatherAndPrint(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	registerer := mocktestutil.NewMockregistererGatherer(controller)
+	filterer := mocktestutil.NewMockfilterer(controller)
+	printer := mocktestutil.NewMockprinter(controller)
+
+	registerer.EXPECT().Gather().Return(utilMetricsA, nil)
+	filterer.EXPECT().FilterMetricsByName(utilMetricsA, "n0").Return(utilMetricsB)
+	printer.EXPECT().PrintMetrics(utilMetricsB)
+
+	defer mockGlobalFilterer(filterer)()
+	defer mockGlobalPrinter(printer)()
+	GatherAndPrint(registerer, "n0")
+}
