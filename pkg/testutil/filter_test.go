@@ -18,41 +18,41 @@ func mockGlobalFilterer(f filterer) func() {
 	}
 }
 
-var metricsNameA = "name-a"
-var metricsNameB = "name-b"
-var metricsA = []*prommodel.MetricFamily{
-	&prommodel.MetricFamily{Name: &metricsNameA},
+var filterMetricsNameA = "name-a"
+var filterMetricsNameB = "name-b"
+var filterMetricsA = []*prommodel.MetricFamily{
+	&prommodel.MetricFamily{Name: &filterMetricsNameA},
 }
-var metricsB = []*prommodel.MetricFamily{
-	&prommodel.MetricFamily{Name: &metricsNameA},
-	&prommodel.MetricFamily{Name: &metricsNameB},
+var filterMetricsB = []*prommodel.MetricFamily{
+	&prommodel.MetricFamily{Name: &filterMetricsNameA},
+	&prommodel.MetricFamily{Name: &filterMetricsNameB},
 }
 
 func TestFilterMetricsByName(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
-
 	filterer := mocktestutil.NewMockfilterer(controller)
-	filterer.EXPECT().FilterMetricsByName(metricsA, "name").Return(metricsB)
-	defer mockGlobalFilterer(filterer)()
+	filterer.EXPECT().FilterMetricsByName(filterMetricsA, "name").Return(
+		filterMetricsB)
 
-	out := FilterMetricsByName(metricsA, "name")
+	defer mockGlobalFilterer(filterer)()
+	out := FilterMetricsByName(filterMetricsA, "name")
 	t.Run("return", func(t *testing.T) {
-		assert.Equal(t, metricsB, out)
+		assert.Equal(t, filterMetricsB, out)
 	})
 }
 
 func Test_filtererImpl_FilterMetricsByName(t *testing.T) {
-	out := filtererImpl{}.FilterMetricsByName(metricsA, metricsNameA)
-	assert.Equal(t, metricsA, out)
+	out := filtererImpl{}.FilterMetricsByName(filterMetricsA, filterMetricsNameA)
+	assert.Equal(t, filterMetricsA, out)
 }
 
 func Test_filtererImpl_FilterMetricsByName_reject(t *testing.T) {
-	out := filtererImpl{}.FilterMetricsByName(metricsA, "different")
+	out := filtererImpl{}.FilterMetricsByName(filterMetricsA, "different")
 	assert.Nil(t, out)
 }
 
 func Test_filtererImpl_FilterMetricsByName_rejectMany(t *testing.T) {
-	out := filtererImpl{}.FilterMetricsByName(metricsB, metricsNameA)
-	assert.Equal(t, metricsA, out)
+	out := filtererImpl{}.FilterMetricsByName(filterMetricsB, filterMetricsNameA)
+	assert.Equal(t, filterMetricsA, out)
 }
