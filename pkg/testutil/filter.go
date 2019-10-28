@@ -27,7 +27,7 @@ func (filtererImpl) FilterMetricsByName(
 
 var globalFilterer filterer = &filtererImpl{}
 
-// FilterMetricsByName ...
+// FilterMetricsByName filters metrics by specified names.
 func FilterMetricsByName(
 	metrics []*prommodel.MetricFamily,
 	names ...string,

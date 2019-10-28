@@ -31,7 +31,7 @@ func (impl *collectorImpl) MustCollect(
 	return registry
 }
 
-// MustCollect ...
+// MustCollect collects metrics from collectors with pedantic checks.
 func MustCollect(collectors ...prometheus.Collector) prometheus.Gatherer {
 	return globalCollector.MustCollect(collectors...)
 }
