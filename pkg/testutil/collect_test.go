@@ -57,3 +57,26 @@ func Test_collectorImpl_MustCollect(t *testing.T) {
 		assert.Equal(t, registererGatherer, gatherer)
 	})
 }
+
+func ExampleMustCollect() {
+	counterA := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "counter_a",
+		Help: "counter_a help.",
+	})
+	counterB := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "counter_b",
+		Help: "counter_b help.",
+	})
+	counterB.Inc()
+
+	metrics, _ := MustCollect(counterA, counterB).Gather()
+	MustPrintMetrics(metrics)
+
+	// Output:
+	// # HELP counter_a counter_a help.
+	// # TYPE counter_a counter
+	// counter_a 0
+	// # HELP counter_b counter_b help.
+	// # TYPE counter_b counter
+	// counter_b 1
+}

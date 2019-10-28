@@ -8,6 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	mockexpfmt "github.com/nieltg/prom-example-testutil/test/mock_expfmt"
 	mocktestutil "github.com/nieltg/prom-example-testutil/test/mock_testutil"
+	"github.com/prometheus/client_golang/prometheus"
 	prommodel "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"github.com/stretchr/testify/assert"
@@ -117,4 +118,20 @@ func Test_printImpl_PrintMetrics_error(t *testing.T) {
 
 	printer := newPrinterWithEncoder(mockEncoder)
 	assert.EqualError(t, printer.PrintMetrics(printMetricsA), errPrintA.Error())
+}
+
+func ExampleMustPrintMetrics() {
+	counterA := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "counter_a",
+		Help: "counter_a help.",
+	})
+	counterA.Inc()
+
+	metrics, _ := MustCollect(counterA).Gather()
+	MustPrintMetrics(metrics)
+
+	// Output:
+	// # HELP counter_a counter_a help.
+	// # TYPE counter_a counter
+	// counter_a 1
 }

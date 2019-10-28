@@ -56,3 +56,37 @@ func TestGatherAndPrint(t *testing.T) {
 	defer mockGlobalPrinter(printer)()
 	GatherAndPrint(registerer, "n0")
 }
+
+func ExampleCollectAndPrint() {
+	counterA := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "counter_a",
+		Help: "counter_a help.",
+	})
+	counterA.Inc()
+
+	CollectAndPrint(counterA, "counter_a")
+
+	// Output:
+	// # HELP counter_a counter_a help.
+	// # TYPE counter_a counter
+	// counter_a 1
+}
+
+func ExampleGatherAndPrint() {
+	counterA := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "counter_a",
+		Help: "counter_a help.",
+	})
+	counterB := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "counter_b",
+		Help: "counter_b help.",
+	})
+	counterB.Inc()
+
+	GatherAndPrint(MustCollect(counterA, counterB), "counter_b")
+
+	// Output:
+	// # HELP counter_b counter_b help.
+	// # TYPE counter_b counter
+	// counter_b 1
+}
