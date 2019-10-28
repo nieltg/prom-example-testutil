@@ -36,3 +36,24 @@ func TestMustCollect(t *testing.T) {
 		assert.Equal(t, collectGathererA, gatherer)
 	})
 }
+
+func newCollectorWithRegistererGatherer(r registererGatherer) collector {
+	return &collectorImpl{
+		newRegistryFunc: func() registererGatherer {
+			return r
+		},
+	}
+}
+
+func Test_collectorImpl_MustCollect(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	registererGatherer := mocktestutil.NewMockregistererGatherer(controller)
+	registererGatherer.EXPECT().MustRegister(collectCounterA)
+
+	collector := newCollectorWithRegistererGatherer(registererGatherer)
+	gatherer := collector.MustCollect(collectCounterA)
+	t.Run("return", func(t *testing.T) {
+		assert.Equal(t, registererGatherer, gatherer)
+	})
+}

@@ -26,7 +26,9 @@ var globalCollector collector = &collectorImpl{
 func (impl *collectorImpl) MustCollect(
 	collectors ...prometheus.Collector,
 ) prometheus.Gatherer {
-	return nil
+	registry := impl.newRegistryFunc()
+	registry.MustRegister(collectors...)
+	return registry
 }
 
 // MustCollect ...
