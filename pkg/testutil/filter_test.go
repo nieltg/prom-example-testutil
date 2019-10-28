@@ -56,3 +56,9 @@ func Test_filtererImpl_FilterMetricsByName_rejectMany(t *testing.T) {
 	out := filtererImpl{}.FilterMetricsByName(filterMetricsB, filterMetricsNameA)
 	assert.Equal(t, filterMetricsA, out)
 }
+
+func Test_filtererImpl_FilterMetricsByName_multipleNames(t *testing.T) {
+	out := filtererImpl{}.FilterMetricsByName(
+		filterMetricsB, filterMetricsNameA, filterMetricsNameB)
+	assert.Equal(t, filterMetricsB, out)
+}

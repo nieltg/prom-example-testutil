@@ -4,18 +4,22 @@ import prommodel "github.com/prometheus/client_model/go"
 
 type filterer interface {
 	FilterMetricsByName(
-		metrics []*prommodel.MetricFamily, name string) []*prommodel.MetricFamily
+		metrics []*prommodel.MetricFamily,
+		names ...string,
+	) []*prommodel.MetricFamily
 }
 
 type filtererImpl struct{}
 
 func (filtererImpl) FilterMetricsByName(
 	metrics []*prommodel.MetricFamily,
-	name string,
+	names ...string,
 ) (filteredMetrics []*prommodel.MetricFamily) {
 	for _, metric := range metrics {
-		if metric.GetName() == name {
-			filteredMetrics = append(filteredMetrics, metric)
+		for _, name := range names {
+			if metric.GetName() == name {
+				filteredMetrics = append(filteredMetrics, metric)
+			}
 		}
 	}
 	return
