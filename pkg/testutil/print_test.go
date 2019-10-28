@@ -7,121 +7,114 @@ import (
 
 	"github.com/golang/mock/gomock"
 	mockexpfmt "github.com/nieltg/prom-example-testutil/test/mock_expfmt"
+	mocktestutil "github.com/nieltg/prom-example-testutil/test/mock_testutil"
 	prommodel "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"github.com/stretchr/testify/assert"
 )
 
-func mockPrintMetrics(f func(metrics []*prommodel.MetricFamily) error) func() {
-	originalPrintMetrics := printMetrics
-	printMetrics = f
+var printMetricsNameA = "name-a"
+var printMetricsNameB = "name-b"
+var printMetricsA = []*prommodel.MetricFamily{
+	&prommodel.MetricFamily{Name: &filterMetricsNameA},
+}
+var printMetricsB = []*prommodel.MetricFamily{
+	&prommodel.MetricFamily{Name: &filterMetricsNameA},
+	&prommodel.MetricFamily{Name: &filterMetricsNameB},
+}
+var errPrintA = fmt.Errorf("error-a")
+
+func mockPrinter(printer printer) func() {
+	originalPrinter := globalPrinter
+	globalPrinter = printer
 
 	return func() {
-		printMetrics = originalPrintMetrics
+		globalPrinter = originalPrinter
 	}
 }
 
 func TestMustPrintMetrics(t *testing.T) {
-	var inParam []*prommodel.MetricFamily
-	defer mockPrintMetrics(func(metrics []*prommodel.MetricFamily) error {
-		inParam = metrics
-		return nil
-	})()
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	printer := mocktestutil.NewMockprinter(controller)
+	printer.EXPECT().PrintMetrics(printMetricsA)
 
-	metrics := []*prommodel.MetricFamily{}
-	MustPrintMetrics(metrics)
-	assert.Equal(t, metrics, inParam)
+	defer mockPrinter(printer)()
+	MustPrintMetrics(printMetricsA)
 }
 
 func TestMustPrintMetrics_panic(t *testing.T) {
-	expectedPanicValue := fmt.Errorf("sample error")
-	unmockFunc := mockPrintMetrics(func(metrics []*prommodel.MetricFamily) error {
-		return expectedPanicValue
-	})
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	printer := mocktestutil.NewMockprinter(controller)
+	printer.EXPECT().PrintMetrics(gomock.Any()).Return(errPrintA).AnyTimes()
 
-	assert.PanicsWithValue(t, expectedPanicValue, func() {
-		defer unmockFunc()
+	defer mockPrinter(printer)()
+	assert.PanicsWithValue(t, errPrintA, func() {
 		MustPrintMetrics(nil)
 	})
 }
 
 func TestPrintMetrics(t *testing.T) {
-	var inParam []*prommodel.MetricFamily
-	expectedErr := fmt.Errorf("sample error")
-	defer mockPrintMetrics(func(metrics []*prommodel.MetricFamily) error {
-		inParam = metrics
-		return expectedErr
-	})()
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	printer := mocktestutil.NewMockprinter(controller)
+	printer.EXPECT().PrintMetrics(printMetricsA).Return(errPrintA)
 
-	metrics := []*prommodel.MetricFamily{}
-	err := PrintMetrics(metrics)
-
-	t.Run("parameter", func(t *testing.T) {
-		assert.Equal(t, metrics, inParam)
-	})
+	defer mockPrinter(printer)()
+	err := PrintMetrics(printMetricsA)
 	t.Run("error", func(t *testing.T) {
-		assert.Equal(t, expectedErr, err)
+		assert.EqualError(t, err, errPrintA.Error())
 	})
 }
 
-func mockNewEncoderWithEncoder(encoder expfmt.Encoder) func() {
-	originalNewEncoder := newEncoder
-	newEncoder = func(w io.Writer, format expfmt.Format) expfmt.Encoder {
-		return encoder
-	}
-
-	return func() {
-		newEncoder = originalNewEncoder
+func newPrinterWithEncoder(encoder expfmt.Encoder) printer {
+	return &printerImpl{
+		newEncoderFunc: func(w io.Writer, format expfmt.Format) expfmt.Encoder {
+			return encoder
+		},
 	}
 }
 
-func Test_printMetrics(t *testing.T) {
-	metrics := []*prommodel.MetricFamily{&prommodel.MetricFamily{}}
-
+func Test_printImpl_PrintMetrics(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 	mockEncoder := mockexpfmt.NewMockEncoder(controller)
-	mockEncoder.EXPECT().Encode(metrics[0]).Return(nil).Times(1)
-	defer mockNewEncoderWithEncoder(mockEncoder)()
+	mockEncoder.EXPECT().Encode(printMetricsA[0]).Return(nil).Times(1)
 
-	_ = printMetrics(metrics)
+	printer := newPrinterWithEncoder(mockEncoder)
+	_ = printer.PrintMetrics(printMetricsA)
 }
 
-func Test_printMetrics_nil(t *testing.T) {
+func Test_printImpl_PrintMetrics_nil(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 	mockEncoder := mockexpfmt.NewMockEncoder(controller)
 	mockEncoder.EXPECT().Encode(gomock.Any()).Return(nil).Times(0)
-	defer mockNewEncoderWithEncoder(mockEncoder)()
 
-	_ = printMetrics(nil)
+	printer := newPrinterWithEncoder(mockEncoder)
+	_ = printer.PrintMetrics(nil)
 }
 
-func Test_printMetrics_multiple(t *testing.T) {
-	metrics := []*prommodel.MetricFamily{
-		&prommodel.MetricFamily{},
-		&prommodel.MetricFamily{},
-	}
-
+func Test_printImpl_PrintMetrics_multiple(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 	mockEncoder := mockexpfmt.NewMockEncoder(controller)
 	gomock.InOrder(
-		mockEncoder.EXPECT().Encode(metrics[0]),
-		mockEncoder.EXPECT().Encode(metrics[1]),
+		mockEncoder.EXPECT().Encode(printMetricsB[0]),
+		mockEncoder.EXPECT().Encode(printMetricsB[1]),
 	)
-	defer mockNewEncoderWithEncoder(mockEncoder)()
 
-	_ = printMetrics(metrics)
+	printer := newPrinterWithEncoder(mockEncoder)
+	_ = printer.PrintMetrics(printMetricsB)
 }
 
-func Test_printMetrics_error(t *testing.T) {
-	expecterErr := fmt.Errorf("sample error")
-	mockEncoder := mockexpfmt.NewMockEncoder(gomock.NewController(t))
-	defer mockNewEncoderWithEncoder(mockEncoder)()
+func Test_printImpl_PrintMetrics_error(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	mockEncoder := mockexpfmt.NewMockEncoder(controller)
+	mockEncoder.EXPECT().Encode(gomock.Any()).Return(errPrintA).AnyTimes()
 
-	mockEncoder.EXPECT().Encode(gomock.Any()).Return(expecterErr)
-
-	metrics := []*prommodel.MetricFamily{&prommodel.MetricFamily{}}
-	assert.EqualError(t, printMetrics(metrics), expecterErr.Error())
+	printer := newPrinterWithEncoder(mockEncoder)
+	assert.EqualError(t, printer.PrintMetrics(printMetricsA), errPrintA.Error())
 }

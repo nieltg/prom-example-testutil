@@ -1,16 +1,23 @@
 package testutil
 
 import (
+	"io"
 	"os"
 
 	prommodel "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 )
 
-var newEncoder = expfmt.NewEncoder
+type printer interface {
+	PrintMetrics(metrics []*prommodel.MetricFamily) error
+}
 
-var printMetrics = func(metrics []*prommodel.MetricFamily) error {
-	encoder := newEncoder(os.Stdout, expfmt.FmtText)
+type printerImpl struct {
+	newEncoderFunc func(w io.Writer, format expfmt.Format) expfmt.Encoder
+}
+
+func (impl *printerImpl) PrintMetrics(metrics []*prommodel.MetricFamily) error {
+	encoder := impl.newEncoderFunc(os.Stdout, expfmt.FmtText)
 	for _, metric := range metrics {
 		if err := encoder.Encode(metric); err != nil {
 			return err
@@ -19,14 +26,18 @@ var printMetrics = func(metrics []*prommodel.MetricFamily) error {
 	return nil
 }
 
+var globalPrinter printer = &printerImpl{
+	newEncoderFunc: expfmt.NewEncoder,
+}
+
 // MustPrintMetrics prints metrics or panic if error has occured.
 func MustPrintMetrics(metrics []*prommodel.MetricFamily) {
-	if err := printMetrics(metrics); err != nil {
+	if err := globalPrinter.PrintMetrics(metrics); err != nil {
 		panic(err)
 	}
 }
 
 // PrintMetrics prints metrics, otherwise return error.
 func PrintMetrics(metrics []*prommodel.MetricFamily) error {
-	return printMetrics(metrics)
+	return globalPrinter.PrintMetrics(metrics)
 }
