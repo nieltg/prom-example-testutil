@@ -24,7 +24,7 @@ var printMetricsB = []*prommodel.MetricFamily{
 }
 var errPrintA = fmt.Errorf("error-a")
 
-func mockPrinter(printer printer) func() {
+func mockGlobalPrinter(printer printer) func() {
 	originalPrinter := globalPrinter
 	globalPrinter = printer
 
@@ -39,7 +39,7 @@ func TestMustPrintMetrics(t *testing.T) {
 	printer := mocktestutil.NewMockprinter(controller)
 	printer.EXPECT().PrintMetrics(printMetricsA)
 
-	defer mockPrinter(printer)()
+	defer mockGlobalPrinter(printer)()
 	MustPrintMetrics(printMetricsA)
 }
 
@@ -49,7 +49,7 @@ func TestMustPrintMetrics_panic(t *testing.T) {
 	printer := mocktestutil.NewMockprinter(controller)
 	printer.EXPECT().PrintMetrics(gomock.Any()).Return(errPrintA).AnyTimes()
 
-	defer mockPrinter(printer)()
+	defer mockGlobalPrinter(printer)()
 	assert.PanicsWithValue(t, errPrintA, func() {
 		MustPrintMetrics(nil)
 	})
@@ -61,7 +61,7 @@ func TestPrintMetrics(t *testing.T) {
 	printer := mocktestutil.NewMockprinter(controller)
 	printer.EXPECT().PrintMetrics(printMetricsA).Return(errPrintA)
 
-	defer mockPrinter(printer)()
+	defer mockGlobalPrinter(printer)()
 	err := PrintMetrics(printMetricsA)
 	t.Run("error", func(t *testing.T) {
 		assert.EqualError(t, err, errPrintA.Error())
