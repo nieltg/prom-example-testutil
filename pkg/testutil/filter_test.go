@@ -18,45 +18,36 @@ func mockGlobalFilterer(f filterer) func() {
 	}
 }
 
+var metricsNameA = "name-a"
+var metricsNameB = "name-b"
+var metricsA = []*prommodel.MetricFamily{
+	&prommodel.MetricFamily{Name: &metricsNameA},
+}
+var metricsB = []*prommodel.MetricFamily{
+	&prommodel.MetricFamily{Name: &metricsNameA},
+	&prommodel.MetricFamily{Name: &metricsNameB},
+}
+
 func TestFilterMetricsByName(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 
-	metricsInName := "metricsIn"
-	metricsIn := []*prommodel.MetricFamily{
-		&prommodel.MetricFamily{Name: &metricsInName},
-	}
-	metricsOutName := "metricsOut"
-	metricsOut := []*prommodel.MetricFamily{
-		&prommodel.MetricFamily{Name: &metricsOutName},
-	}
-
 	filterer := mocktestutil.NewMockfilterer(controller)
-	filterer.EXPECT().FilterMetricsByName(metricsIn, "name").Return(metricsOut)
+	filterer.EXPECT().FilterMetricsByName(metricsA, "name").Return(metricsB)
 	defer mockGlobalFilterer(filterer)()
 
-	out := FilterMetricsByName(metricsIn, "name")
+	out := FilterMetricsByName(metricsA, "name")
 	t.Run("return", func(t *testing.T) {
-		assert.Equal(t, metricsOut, out)
+		assert.Equal(t, metricsB, out)
 	})
 }
 
 func Test_filtererImpl_FilterMetricsByName(t *testing.T) {
-	metricsName := "name"
-	metrics := []*prommodel.MetricFamily{
-		&prommodel.MetricFamily{Name: &metricsName},
-	}
-
-	out := filtererImpl{}.FilterMetricsByName(metrics, "name")
-	assert.Equal(t, metrics, out)
+	out := filtererImpl{}.FilterMetricsByName(metricsA, metricsNameA)
+	assert.Equal(t, metricsA, out)
 }
 
 func Test_filtererImpl_FilterMetricsByName_reject(t *testing.T) {
-	metricsName := "name"
-	metrics := []*prommodel.MetricFamily{
-		&prommodel.MetricFamily{Name: &metricsName},
-	}
-
-	out := filtererImpl{}.FilterMetricsByName(metrics, "different")
+	out := filtererImpl{}.FilterMetricsByName(metricsA, "different")
 	assert.Nil(t, out)
 }
