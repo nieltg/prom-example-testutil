@@ -40,3 +40,13 @@ func TestFilterMetricsByName(t *testing.T) {
 		assert.Equal(t, metricsOut, out)
 	})
 }
+
+func Test_filtererImpl_FilterMetricsByName(t *testing.T) {
+	metricsName := "name"
+	metrics := []*prommodel.MetricFamily{
+		&prommodel.MetricFamily{Name: &metricsName},
+	}
+
+	out := filtererImpl{}.FilterMetricsByName(metrics, "name")
+	assert.Equal(t, metrics, out)
+}

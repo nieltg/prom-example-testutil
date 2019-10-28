@@ -11,7 +11,7 @@ type filtererImpl struct{}
 
 func (filtererImpl) FilterMetricsByName(
 	metrics []*prommodel.MetricFamily, name string) []*prommodel.MetricFamily {
-	return nil
+	return metrics
 }
 
 var globalFilterer filterer = &filtererImpl{}
