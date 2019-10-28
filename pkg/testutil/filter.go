@@ -10,11 +10,15 @@ type filterer interface {
 type filtererImpl struct{}
 
 func (filtererImpl) FilterMetricsByName(
-	metrics []*prommodel.MetricFamily, name string) []*prommodel.MetricFamily {
-	if metrics[0].GetName() == name {
-		return metrics
+	metrics []*prommodel.MetricFamily,
+	name string,
+) (filteredMetrics []*prommodel.MetricFamily) {
+	for _, metric := range metrics {
+		if metric.GetName() == name {
+			filteredMetrics = append(filteredMetrics, metric)
+		}
 	}
-	return nil
+	return
 }
 
 var globalFilterer filterer = &filtererImpl{}

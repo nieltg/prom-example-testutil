@@ -51,3 +51,8 @@ func Test_filtererImpl_FilterMetricsByName_reject(t *testing.T) {
 	out := filtererImpl{}.FilterMetricsByName(metricsA, "different")
 	assert.Nil(t, out)
 }
+
+func Test_filtererImpl_FilterMetricsByName_rejectMany(t *testing.T) {
+	out := filtererImpl{}.FilterMetricsByName(metricsB, metricsNameA)
+	assert.Equal(t, metricsA, out)
+}
