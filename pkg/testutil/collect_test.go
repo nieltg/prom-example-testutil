@@ -15,7 +15,7 @@ var collectCounterA = prometheus.NewCounter(prometheus.CounterOpts{
 })
 var collectGathererA prometheus.Gatherer = prometheus.NewPedanticRegistry()
 
-func mockCollector(collector collector) func() {
+func mockGlobalCollector(collector collector) func() {
 	originalCollector := globalCollector
 	globalCollector = collector
 
@@ -30,7 +30,7 @@ func TestMustCollect(t *testing.T) {
 	collector := mocktestutil.NewMockcollector(controller)
 	collector.EXPECT().MustCollect(collectCounterA).Return(collectGathererA)
 
-	defer mockCollector(collector)()
+	defer mockGlobalCollector(collector)()
 	gatherer := MustCollect(collectCounterA)
 	t.Run("return", func(t *testing.T) {
 		assert.Equal(t, collectGathererA, gatherer)
