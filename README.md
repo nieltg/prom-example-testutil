@@ -1,8 +1,11 @@
 # prom-example-testutil
 
-Utilities for testing Prometheus exporter using test examples.
+[![Build Status](https://travis-ci.org/nieltg/prom-example-testutil.svg?branch=master)](https://travis-ci.org/nieltg/prom-example-testutil)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nieltg/prom-example-testutil)](https://goreportcard.com/report/github.com/nieltg/prom-example-testutil)
+[![Coverage Status](https://coveralls.io/repos/github/nieltg/prom-example-testutil/badge.svg?branch=master)](https://coveralls.io/github/nieltg/prom-example-testutil?branch=master)
+[![GoDoc](https://godoc.org/github.com/nieltg/prom-example-testutil?status.svg)](https://godoc.org/github.com/nieltg/prom-example-testutil)
 
-Currently, this library has no implementation for now.
+Utilities for testing Prometheus exporter using test examples.
 
 ## Hacking
 
