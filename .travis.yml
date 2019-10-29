@@ -1,0 +1,13 @@
+language: go
+go:
+  - "1.13"
+
+before_install:
+  - go get github.com/mattn/goveralls
+script:
+  - $GOPATH/bin/goveralls -service=travis-ci
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  on:
+    tags: true
