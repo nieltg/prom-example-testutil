@@ -30,7 +30,7 @@ var globalPrinter printer = &printerImpl{
 	newEncoderFunc: expfmt.NewEncoder,
 }
 
-// MustPrintMetrics prints metrics or panic if error has occured.
+// MustPrintMetrics prints metrics or panic if error has occurred.
 func MustPrintMetrics(metrics []*prommodel.MetricFamily) {
 	if err := globalPrinter.PrintMetrics(metrics); err != nil {
 		panic(err)
