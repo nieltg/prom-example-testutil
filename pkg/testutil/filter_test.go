@@ -22,11 +22,11 @@ func mockGlobalFilterer(f filterer) func() {
 var filterMetricsNameA = "name-a"
 var filterMetricsNameB = "name-b"
 var filterMetricsA = []*prommodel.MetricFamily{
-	&prommodel.MetricFamily{Name: &filterMetricsNameA},
+	{Name: &filterMetricsNameA},
 }
 var filterMetricsB = []*prommodel.MetricFamily{
-	&prommodel.MetricFamily{Name: &filterMetricsNameA},
-	&prommodel.MetricFamily{Name: &filterMetricsNameB},
+	{Name: &filterMetricsNameA},
+	{Name: &filterMetricsNameB},
 }
 
 func TestFilterMetricsByName(t *testing.T) {

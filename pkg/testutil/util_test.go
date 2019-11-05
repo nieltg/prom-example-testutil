@@ -16,10 +16,10 @@ var utilCounterA = prometheus.NewCounter(prometheus.CounterOpts{
 var utilMetricsNameA = "name-a"
 var utilMetricsNameB = "name-b"
 var utilMetricsA = []*prommodel.MetricFamily{
-	&prommodel.MetricFamily{Name: &filterMetricsNameA},
+	{Name: &filterMetricsNameA},
 }
 var utilMetricsB = []*prommodel.MetricFamily{
-	&prommodel.MetricFamily{Name: &filterMetricsNameB},
+	{Name: &filterMetricsNameB},
 }
 
 func TestCollectAndPrint(t *testing.T) {

@@ -17,11 +17,11 @@ import (
 var printMetricsNameA = "name-a"
 var printMetricsNameB = "name-b"
 var printMetricsA = []*prommodel.MetricFamily{
-	&prommodel.MetricFamily{Name: &filterMetricsNameA},
+	{Name: &filterMetricsNameA},
 }
 var printMetricsB = []*prommodel.MetricFamily{
-	&prommodel.MetricFamily{Name: &filterMetricsNameA},
-	&prommodel.MetricFamily{Name: &filterMetricsNameB},
+	{Name: &filterMetricsNameA},
+	{Name: &filterMetricsNameB},
 }
 var errPrintA = fmt.Errorf("error-a")
 
